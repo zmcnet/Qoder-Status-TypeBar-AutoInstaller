@@ -130,7 +130,8 @@ internal static class Program
         {
             Say("");
             Say("[2/5] 卸载模式：结束注入器、恢复原始快捷方式、删除安装目录");
-            UninstallShortcuts(qoder);
+            if (!noShortcut) UninstallShortcuts(qoder);
+            else Say("      （--no-shortcut：不改快捷方式）");
             KillInjectors();
             try
             {
