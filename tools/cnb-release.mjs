@@ -50,7 +50,16 @@ if (relIdx > 0) {
   console.log("reuse release id:", rel.id);
 } else {
   const cIdx = process.argv.indexOf("--commitish");
-  const payload = { tag_name: tag, name, body, draft: false, prerelease: false };
+  const payload = {
+    tag_name: tag,
+    name,
+    body,
+    draft: false,
+    prerelease: false,
+    /* 不设 latest 的话 /releases/latest/download/... 会一直指向老版本，
+     * README 里就没法用不带版本号的稳定链接 */
+    is_latest: true,
+  };
   /* tag 还不存在时由 Release 接口顺带建 tag，必须告诉它从哪个 ref 切 */
   if (cIdx > 0) payload.target_commitish = process.argv[cIdx + 1];
   rel = await j(`https://api.cnb.cool/${repo}/-/releases`, {

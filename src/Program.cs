@@ -28,9 +28,12 @@ using Microsoft.Win32;
 internal static class Program
 {
     private const string ProductName = "Qoder Status Bar";
+    /* 安装器自身版本与内置插件包版本是两回事：
+     * 只改安装器逻辑时升 InstallerVersion，PluginVersion / ZipUrl / ZipSha256 跟着插件包走。 */
+    private const string InstallerVersion = "1.0.4";
     private const string PluginVersion = "1.0.3";
 
-    /* 换版本时这三处要一起改：PluginVersion / ZipUrl / ZipSha256 */
+    /* 换插件包版本时这三处要一起改：PluginVersion / ZipUrl / ZipSha256 */
     private const string ZipUrl =
         "https://cnb.cool/kybll/Qoder-StatusBar/-/releases/download/v1.0.3/Qoder-Status-TypeBar-v1.0.3.zip";
     private const string ZipSha256 = "aa75d32682ab92649c906cc3fdeeaaf1d3eb8b2781091bcdbd5cbba6e99e072a";
@@ -100,7 +103,8 @@ internal static class Program
 
         Say("==================================================");
         Say("  Qoder 用量状态条 · 一键安装器");
-        Say("  v" + PluginVersion + "  (https://cnb.cool/kybll/Qoder-StatusBar)");
+        Say("  v" + InstallerVersion + "（内置插件包 v" + PluginVersion + "）");
+        Say("  https://cnb.cool/kybll/Qoder-StatusBar");
         Say("==================================================");
         Say("");
 
@@ -259,7 +263,7 @@ internal static class Program
 
     private static void PrintHelp()
     {
-        Console.WriteLine("Qoder 用量状态条 · 一键安装器 v" + PluginVersion);
+        Console.WriteLine("Qoder 用量状态条 · 一键安装器 v" + InstallerVersion + "（内置插件包 v" + PluginVersion + "）");
         Console.WriteLine("");
         Console.WriteLine("用法: Install-Qoder-Status-TypeBar.exe [选项]");
         Console.WriteLine("");
@@ -869,30 +873,33 @@ internal static class Program
     }
 
     /* 杀掉所有注入器（node.exe 或 Qoder.exe 形态都可能），再看 pidfile */
+    /* 结束注入器 —— 只杀命令行里带着本安装目录的进程。
+     * 为什么要限定路径：卸载的契约是「Qoder 本身不会被动过」，从源码目录跑注入器的
+     * 开发者不该被一次卸载顺手带走；安装时同理，装完的注入器本来就在本目录下。
+     * pid 文件里的 PID 可能已被系统复用，杀之前必须核对命令行确实是 injector.mjs。 */
     private static void KillInjectors()
     {
+        string dir = InstallDir.Replace("'", "''");
+        string script =
+            "$pids = @()\n" +
+            "$pf = Join-Path '" + dir + "' 'injector.pid'\n" +
+            "if (Test-Path -LiteralPath $pf) {\n" +
+            "  $n = 0\n" +
+            "  if ([int]::TryParse((Get-Content -LiteralPath $pf -Raw).Trim(), [ref]$n)) {\n" +
+            "    $one = Get-CimInstance Win32_Process -Filter \"ProcessId=$n\"\n" +
+            "    if ($one -and $one.CommandLine -and $one.CommandLine.Contains('injector.mjs')) { $pids += $n }\n" +
+            "  }\n" +
+            "  Remove-Item -LiteralPath $pf -Force -ErrorAction SilentlyContinue\n" +
+            "}\n" +
+            "Get-CimInstance Win32_Process | Where-Object { " +
+            "$_.CommandLine -and $_.CommandLine.Contains('" + dir + "') -and " +
+            "$_.CommandLine.Contains('injector.mjs') } | " +
+            "ForEach-Object { $pids += $_.ProcessId }\n" +
+            "$pids | Select-Object -Unique | ForEach-Object { " +
+            "Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }";
+        string enc = Convert.ToBase64String(Encoding.Unicode.GetBytes(script));
         try
         {
-            string pidFile = Path.Combine(InstallDir, "injector.pid");
-            if (File.Exists(pidFile))
-            {
-                int pid;
-                if (int.TryParse(File.ReadAllText(pidFile).Trim(), out pid))
-                {
-                    try { Process.GetProcessById(pid).Kill(); } catch { }
-                }
-                try { File.Delete(pidFile); } catch { }
-            }
-        }
-        catch { }
-
-        try
-        {
-            string script =
-                "Get-CimInstance Win32_Process | " +
-                "Where-Object { $_.CommandLine -like '*injector.mjs*' } | " +
-                "ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }";
-            string enc = Convert.ToBase64String(Encoding.Unicode.GetBytes(script));
             var psi = new ProcessStartInfo
             {
                 FileName = "powershell.exe",

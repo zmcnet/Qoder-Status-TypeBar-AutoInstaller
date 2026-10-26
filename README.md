@@ -31,7 +31,7 @@
 
 ## 安装
 
-1. 下载 **[Install-Qoder-Status-TypeBar.exe](https://cnb.cool/kybll/Qoder-Status-TypeBar-AutoInstaller/-/releases/download/v1.0.3/Install-Qoder-Status-TypeBar.exe)**
+1. 下载 **[Install-Qoder-Status-TypeBar.exe](https://cnb.cool/kybll/Qoder-Status-TypeBar-AutoInstaller/-/releases/latest/download/Install-Qoder-Status-TypeBar.exe)**
    （全部版本见 [Releases](https://cnb.cool/kybll/Qoder-Status-TypeBar-AutoInstaller/-/releases)）。
 2. **完全退出 Qoder**（托盘图标也要退出）。
 3. 双击运行，按提示回车即可。
@@ -41,11 +41,11 @@
 
 安装完成后，以后照常点桌面上的 Qoder 图标启动即可，底栏会自动出现。
 
-校验下载的文件（可选）：
+校验下载的文件（可选，对应当前 latest = v1.0.4）：
 
 ```
-SHA256  5cd22ea6cfdd63d2243a76d19abf4d60b6642fc781f3300b26a7e9fa81ff0862
-大小    28672 字节
+SHA256  0f49a5d30697d42e821b1f28245d95542cced73c5930f744963798fb91e672d0
+大小    29696 字节
 ```
 
 ### 卸载
@@ -99,7 +99,7 @@ Qoder 本身不会被动过。
 build.bat
 ```
 
-产物：`Install-Qoder-Status-TypeBar.exe`（约 27 KB，单文件，无依赖）。
+产物：`Install-Qoder-Status-TypeBar.exe`（约 29 KB，单文件，无依赖）。
 
 安装器内置的插件包版本、下载地址和 SHA256 在 `src/Program.cs` 顶部：
 

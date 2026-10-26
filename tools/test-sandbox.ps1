@@ -14,7 +14,9 @@ param(
   [string]$Exe   = "$PSScriptRoot\..\Install-Qoder-Status-TypeBar.exe",
   [string]$Zip   = "$PSScriptRoot\..\..\Qoder-Status-TypeBar\dist\Qoder-Status-TypeBar-v1.0.3.zip",
   [string]$Qoder = "C:\Users\kybll\AppData\Local\Programs\Qoder\Qoder.exe",
-  [string]$Sb    = "$env:TEMP\qoder-statusbar-installer-sandbox"
+  [string]$Sb    = "$env:TEMP\qoder-statusbar-installer-sandbox",
+  # 传一个正在跑的注入器 PID，测试跑完断言它没被顺手杀掉（安装/卸载只该动本安装目录的进程）
+  [string]$GuardPid = ""
 )
 $ErrorActionPreference = "Stop"
 $lnkDir  = "$Sb\shortcuts"
@@ -87,6 +89,13 @@ $d = Info "$lnkDir\Qoder.lnk"; $m = Info "$lnkDir\StartMenu\Qoder.lnk"
 Check "桌面（我们的）从备份恢复" (($d.Desc -eq "orig-desktop") -and (IsPlain $d))
 Check "开始菜单（用户自己改的）保持原样" (($m.Desc -eq "user-reverted") -and (IsPlain $m))
 Check "开始菜单的原始备份没被顺手删掉" (Test-Path "$lnkDir\StartMenu\Qoder（原始启动）.lnk")
+
+if ($GuardPid -ne "") {
+  "=== 场景 5：目录外的注入器不被误杀 ==="
+  $alive = $null
+  try { $alive = Get-Process -Id ([int]$GuardPid) -ErrorAction Stop } catch {}
+  Check "外部注入器 $GuardPid 还活着" ($null -ne $alive)
+}
 
 Remove-Item $Sb -Recurse -Force -ErrorAction SilentlyContinue
 if ($fail -eq 0) { "`n全部通过" } else { "`n失败 $fail 项" }
