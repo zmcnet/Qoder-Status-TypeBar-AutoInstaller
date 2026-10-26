@@ -28,12 +28,12 @@ using Microsoft.Win32;
 internal static class Program
 {
     private const string ProductName = "Qoder Status Bar";
-    private const string PluginVersion = "1.0.0";
+    private const string PluginVersion = "1.0.1";
 
     /* 换版本时这三处要一起改：PluginVersion / ZipUrl / ZipSha256 */
     private const string ZipUrl =
-        "https://cnb.cool/kybll/Qoder-StatusBar/-/releases/download/v1.0.0/Qoder-Status-TypeBar-v1.0.0.zip";
-    private const string ZipSha256 = "a7215b5a7746ad86cd8c5b14ec0a0c3b2e5c85b6db62020b9799c97dd5de06aa";
+        "https://cnb.cool/kybll/Qoder-StatusBar/-/releases/download/v1.0.1/Qoder-Status-TypeBar-v1.0.1.zip";
+    private const string ZipSha256 = "1bafe7a3df2fbb3ca85ba711d14145aa7418450650e83849a2b32bc671a652ee";
 
     private const int WaitTimeoutSeconds = 1800;   /* 等 Qoder 退出，最多 30 分钟 */
     private const int PollIntervalMs = 800;
