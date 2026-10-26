@@ -7,7 +7,8 @@
   现在只处理命令行里带着本安装目录的进程，`injector.pid` 也先核对命令行再杀（防 PID 复用）。
 - 安装器自身版本与内置插件包版本分开（`InstallerVersion` / `PluginVersion`），
   只改安装器逻辑时不再把安装器版本号当成插件版本显示。
-- 发版脚本 `tools/cnb-release.mjs` 会把新版本标成 latest，
+- 发版脚本 `tools/cnb-release.mjs` 用 `make_latest` 把新版本标成 latest（传 `is_latest` 会被接口静默忽略，
+  导致 `/releases/latest/download/...` 一直返回老包），发完再回读 `GET /releases/latest` 确认指针真的接上。
   文档里的下载地址改用不带版本号的 `/releases/latest/download/...`。
 - 沙箱回归测试新增场景 5：跑完整个安装 / 卸载循环后，外部注入器仍然活着（18 项断言）。
 

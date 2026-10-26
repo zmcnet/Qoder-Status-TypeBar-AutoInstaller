@@ -4,6 +4,8 @@
  * 凭据取环境变量 CNB_TOKEN（不是 ~/.cnb/config 里的 docker token）。
  * 接口域名必须是 api.cnb.cool，Accept 头必须是 application/vnd.cnb.api+json。
  * 资产上传三步：asset-upload-url（要带 asset_name + size）→ PUT upload_url → POST verify_url。
+ * latest 指针用 make_latest:"true"（字符串），create 之后再用 PATCH /releases/{id} 兜一次，
+ * 最后回读 GET /releases/latest 确认真接上了 —— is_latest 字段传进去会被静默忽略。
  *
  * 用法：
  *   node tools/cnb-release.mjs <repo> <tag> <name> <bodyFile> <assetFile> [contentType] \
@@ -56,9 +58,9 @@ if (relIdx > 0) {
     body,
     draft: false,
     prerelease: false,
-    /* 不设 latest 的话 /releases/latest/download/... 会一直指向老版本，
-     * README 里就没法用不带版本号的稳定链接 */
-    is_latest: true,
+    /* /releases/latest/download/... 靠这个标记解析。字段名是 make_latest，
+     * 值是字符串（true|false|legacy）—— 传 is_latest:true 会被接口静默吃掉。 */
+    make_latest: "true",
   };
   /* tag 还不存在时由 Release 接口顺带建 tag，必须告诉它从哪个 ref 切 */
   if (cIdx > 0) payload.target_commitish = process.argv[cIdx + 1];
@@ -103,5 +105,20 @@ if (!put.ok) process.exit(1);
 if (verifyUrl) {
   const v = await j(verifyUrl, { method: "POST", headers: H, body: "{}" });
   console.log("verify:", JSON.stringify(v).slice(0, 400));
+}
+
+/* 5. --release-id 复用的老 release 当初可能没设上 latest，再 PATCH 一次兜底 */
+await j(`https://api.cnb.cool/${repo}/-/releases/${rel.id}`, {
+  method: "PATCH",
+  headers: H,
+  body: JSON.stringify({ make_latest: "true" }),
+});
+
+/* 6. 回读确认 latest 真的指到本次 tag：只查接口返回不等于指针生效 */
+const latest = await j(`https://api.cnb.cool/${repo}/-/releases/latest`, { headers: H });
+console.log("latest ->", latest.tag_name);
+if (latest.tag_name !== tag) {
+  console.error("!! latest 仍指向 " + latest.tag_name + "，本次 " + tag + " 没接上");
+  process.exit(1);
 }
 console.log("DONE", JSON.stringify({ id: rel.id, asset: assetName }));
