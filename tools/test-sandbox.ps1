@@ -12,7 +12,7 @@
 #>
 param(
   [string]$Exe   = "$PSScriptRoot\..\Install-Qoder-Status-TypeBar.exe",
-  [string]$Zip   = "$PSScriptRoot\..\..\Qoder-Status-TypeBar\dist\Qoder-Status-TypeBar-v1.0.3.zip",
+  [string]$Zip   = "$PSScriptRoot\..\..\Qoder-Status-TypeBar\dist\Qoder-Status-TypeBar-v1.0.4.zip",
   [string]$Qoder = "C:\Users\kybll\AppData\Local\Programs\Qoder\Qoder.exe",
   [string]$Sb    = "$env:TEMP\qoder-statusbar-installer-sandbox",
   # 传一个正在跑的注入器 PID，测试跑完断言它没被顺手杀掉（安装/卸载只该动本安装目录的进程）

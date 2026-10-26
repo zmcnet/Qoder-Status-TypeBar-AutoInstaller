@@ -30,13 +30,14 @@ internal static class Program
     private const string ProductName = "Qoder Status Bar";
     /* 安装器自身版本与内置插件包版本是两回事：
      * 只改安装器逻辑时升 InstallerVersion，PluginVersion / ZipUrl / ZipSha256 跟着插件包走。 */
-    private const string InstallerVersion = "1.0.4";
-    private const string PluginVersion = "1.0.3";
+    private const string InstallerVersion = "1.0.5";
+    private const string PluginVersion = "1.0.4";
 
-    /* 换插件包版本时这三处要一起改：PluginVersion / ZipUrl / ZipSha256 */
+    /* 换插件包版本时这三处要一起改：PluginVersion / ZipUrl / ZipSha256
+     * 链接钉死具体版本（不跟 latest），latest 指错了也不会装到没校验过的包。 */
     private const string ZipUrl =
-        "https://cnb.cool/kybll/Qoder-StatusBar/-/releases/download/v1.0.3/Qoder-Status-TypeBar-v1.0.3.zip";
-    private const string ZipSha256 = "aa75d32682ab92649c906cc3fdeeaaf1d3eb8b2781091bcdbd5cbba6e99e072a";
+        "https://cnb.cool/kybll/Qoder-StatusBar/-/releases/download/v1.0.4/Qoder-Status-TypeBar-v1.0.4.zip";
+    private const string ZipSha256 = "1ab7e5a2e4c316d91100b6694d157ace03a9a9fe47772c858d72bf1452537622";
 
     private const int WaitTimeoutSeconds = 1800;   /* 等 Qoder 退出，最多 30 分钟 */
     private const int PollIntervalMs = 800;

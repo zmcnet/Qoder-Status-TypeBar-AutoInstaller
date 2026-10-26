@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.0.5 — 2026-10-27
+
+- 内置插件包升级到 v1.0.4：那一版的发布包是在 `cdp.mjs` / `shot.mjs` 改跟随 `port.txt`
+  之前打的，装到机器上的还是写死 9222、连不上会永久等待的旧版；现在包内容与 commit 一一对应
+  （插件仓库新增 `tools/pack.mjs`，只从 `git archive HEAD` 打包）。
+- 发版脚本的 latest 指针改用 `make_latest:"true"`：v1.0.4 当时传的是 `is_latest:true`，
+  被接口静默忽略，`/releases/latest/download/...` 仍然返回 v1.0.1 的包 ——
+  README 顶部的下载链接等于在骗人。脚本现在发完回读 `GET /releases/latest`，指错就非零退出。
+- README 补了一条「直接核对线上 latest 包哈希」的命令：EXE 每次重编哈希都会变，
+  文档里的静态值跟不上，给一条不依赖文档的自证方式。
+
 ## v1.0.4 — 2026-10-27
 
 - **不再误杀目录外的注入器**：安装 / 卸载原本按命令行里有没有 `injector.mjs` 全机器扫，

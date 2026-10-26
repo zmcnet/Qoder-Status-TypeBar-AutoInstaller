@@ -41,12 +41,20 @@
 
 安装完成后，以后照常点桌面上的 Qoder 图标启动即可，底栏会自动出现。
 
-校验下载的文件（可选，对应当前 latest = v1.0.4）：
+校验下载的文件（可选，对应当前 latest = v1.0.5）：
 
 ```
-SHA256  0f49a5d30697d42e821b1f28245d95542cced73c5930f744963798fb91e672d0
+SHA256  edc6d33cd36fc96f6edf9b57935dae521ea4d854946cb668ff6d824b74a0cc85
 大小    29696 字节
 ```
+
+> EXE 每次重新编译哈希都会变（版本号常量就编在文件里），README 这一栏容易跟不上。
+> 用下面这条直接核对线上 latest 包，不用信文档里的静态值：
+>
+> ```powershell
+> curl.exe -sSL -o $env:TEMP\qsb.exe "https://cnb.cool/kybll/Qoder-Status-TypeBar-AutoInstaller/-/releases/latest/download/Install-Qoder-Status-TypeBar.exe"
+> (Get-FileHash $env:TEMP\qsb.exe -Algorithm SHA256).Hash.ToLower()
+> ```
 
 ### 卸载
 
@@ -101,15 +109,16 @@ build.bat
 
 产物：`Install-Qoder-Status-TypeBar.exe`（约 29 KB，单文件，无依赖）。
 
-安装器内置的插件包版本、下载地址和 SHA256 在 `src/Program.cs` 顶部：
+安装器自身版本 `InstallerVersion` 与内置的插件包版本、下载地址、SHA256 都在 `src/Program.cs` 顶部：
 
 ```csharp
-private const string PluginVersion = "1.0.3";
-private const string ZipUrl = "https://cnb.cool/kybll/Qoder-StatusBar/-/releases/download/v1.0.3/Qoder-Status-TypeBar-v1.0.3.zip";
-private const string ZipSha256 = "aa75d326...";
+private const string PluginVersion = "1.0.4";
+private const string ZipUrl = "https://cnb.cool/kybll/Qoder-StatusBar/-/releases/download/v1.0.4/Qoder-Status-TypeBar-v1.0.4.zip";
+private const string ZipSha256 = "1ab7e5a2...";
 ```
 
-发新版本时改这三处，重新编译，再发 Release。
+发新版本时改这三处，重新编译，再发 Release。`ZipUrl` 钉死具体版本而不是跟 `latest`——
+指针指错了也不能装到一个没校验过的包上。
 
 ---
 
@@ -120,13 +129,17 @@ private const string ZipSha256 = "aa75d326...";
 powershell -NoProfile -ExecutionPolicy Bypass -File tools\test-sandbox.ps1
 
 # 发 Release 并上传资产（插件包 zip / 本安装器 exe 都用它）
-node tools\cnb-release.mjs kybll/Qoder-Status-TypeBar-AutoInstaller v1.0.3 "标题" notes.md `
+node tools\cnb-release.mjs kybll/Qoder-Status-TypeBar-AutoInstaller v1.0.5 "标题" notes.md `
      Install-Qoder-Status-TypeBar.exe application/octet-stream --commitish refs/heads/main
 ```
 
 `cnb-release.mjs` 的凭据取环境变量 `CNB_TOKEN`；接口域名必须是 `api.cnb.cool`，
 资产上传要按「申请地址（带 `asset_name` + `size`）→ PUT → POST 校验」三步走。
 `--commitish` 只在 tag 还不存在时需要（Release 接口会顺带切 tag）。
+
+latest 指针用 `make_latest:"true"`（字符串），脚本发完还会回读 `GET /releases/latest`
+确认真正接上了 —— 传 `is_latest:true` 会被接口静默忽略，
+`/releases/latest/download/...` 就一直返回老包，README 里的链接全跟着骗人。
 
 ---
 
