@@ -31,7 +31,7 @@
 
 ## 安装
 
-1. 下载 **[Install-Qoder-Status-TypeBar.exe](https://cnb.cool/kybll/Qoder-Status-TypeBar-AutoInstaller/-/releases/download/v1.0.1/Install-Qoder-Status-TypeBar.exe)**
+1. 下载 **[Install-Qoder-Status-TypeBar.exe](https://cnb.cool/kybll/Qoder-Status-TypeBar-AutoInstaller/-/releases/download/v1.0.3/Install-Qoder-Status-TypeBar.exe)**
    （全部版本见 [Releases](https://cnb.cool/kybll/Qoder-Status-TypeBar-AutoInstaller/-/releases)）。
 2. **完全退出 Qoder**（托盘图标也要退出）。
 3. 双击运行，按提示回车即可。
@@ -44,8 +44,8 @@
 校验下载的文件（可选）：
 
 ```
-SHA256  6dfac75bd1fc91c3166a66856a27a92eb303c2342cc7e257f66db09b0b31f449
-大小    28160 字节
+SHA256  5cd22ea6cfdd63d2243a76d19abf4d60b6642fc781f3300b26a7e9fa81ff0862
+大小    28672 字节
 ```
 
 ### 卸载
@@ -56,6 +56,10 @@ Install-Qoder-Status-TypeBar.exe --uninstall
 
 会结束注入器、把快捷方式恢复成原始启动方式、删除 `%USERPROFILE%\.qoder\qoder-statusbar`。
 Qoder 本身不会被动过。
+
+原始备份（`Qoder（原始启动）.lnk`）被删掉时，卸载会把快捷方式改回**直接启动 Qoder.exe**，
+不会删除快捷方式 —— 桌面上的启动入口永远保留。开始菜单里的快捷方式同样会被找回还原；
+已经被你自己改回去的快捷方式不会被覆盖。
 
 ---
 
@@ -100,9 +104,9 @@ build.bat
 安装器内置的插件包版本、下载地址和 SHA256 在 `src/Program.cs` 顶部：
 
 ```csharp
-private const string PluginVersion = "1.0.1";
-private const string ZipUrl = "https://cnb.cool/kybll/Qoder-StatusBar/-/releases/download/v1.0.1/Qoder-Status-TypeBar-v1.0.1.zip";
-private const string ZipSha256 = "de279c64...";
+private const string PluginVersion = "1.0.3";
+private const string ZipUrl = "https://cnb.cool/kybll/Qoder-StatusBar/-/releases/download/v1.0.3/Qoder-Status-TypeBar-v1.0.3.zip";
+private const string ZipSha256 = "aa75d326...";
 ```
 
 发新版本时改这三处，重新编译，再发 Release。

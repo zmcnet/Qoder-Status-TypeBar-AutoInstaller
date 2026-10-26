@@ -28,18 +28,19 @@ using Microsoft.Win32;
 internal static class Program
 {
     private const string ProductName = "Qoder Status Bar";
-    private const string PluginVersion = "1.0.1";
+    private const string PluginVersion = "1.0.3";
 
     /* 换版本时这三处要一起改：PluginVersion / ZipUrl / ZipSha256 */
     private const string ZipUrl =
-        "https://cnb.cool/kybll/Qoder-StatusBar/-/releases/download/v1.0.1/Qoder-Status-TypeBar-v1.0.1.zip";
-    private const string ZipSha256 = "de279c648fad6e8c4bd53698b0de0c1f15aff534be6e2835c3cb28fb795b8f0c";
+        "https://cnb.cool/kybll/Qoder-StatusBar/-/releases/download/v1.0.3/Qoder-Status-TypeBar-v1.0.3.zip";
+    private const string ZipSha256 = "aa75d32682ab92649c906cc3fdeeaaf1d3eb8b2781091bcdbd5cbba6e99e072a";
 
     private const int WaitTimeoutSeconds = 1800;   /* 等 Qoder 退出，最多 30 分钟 */
     private const int PollIntervalMs = 800;
 
     private static readonly List<string> Log = new List<string>();
     private static int _port = 9222;
+    private static bool _portExplicit;
     private static string _installDirOverride;
     private static string _shortcutDirOverride;
 
@@ -90,7 +91,11 @@ internal static class Program
         if (!string.IsNullOrEmpty(portArg))
         {
             int p;
-            if (int.TryParse(portArg, out p) && p > 1024 && p < 65536) _port = p;
+            if (int.TryParse(portArg, out p) && p > 1024 && p < 65536)
+            {
+                _port = p;
+                _portExplicit = true;
+            }
         }
 
         Say("==================================================");
@@ -443,11 +448,14 @@ internal static class Program
                 qoder.ExePath,
                 new UTF8Encoding(false));
 
-            /* CDP 端口写进 port.txt；被占用时启动器会自动换一个并回写 */
-            File.WriteAllText(
-                Path.Combine(InstallDir, "port.txt"),
-                _port.ToString(),
-                new UTF8Encoding(false));
+            /* CDP 端口写进 port.txt；被占用时启动器会自动换一个并回写。
+             * 重装时不能无脑覆盖：Qoder 可能正跑在启动器自动选出的端口上，
+             * 覆盖成 9222 会让下一次 --inject 连错端口。只有显式 --port 才强制改写。 */
+            string portFile = Path.Combine(InstallDir, "port.txt");
+            if (_portExplicit || !File.Exists(portFile))
+            {
+                File.WriteAllText(portFile, _port.ToString(), new UTF8Encoding(false));
+            }
 
             EnsureNodeRuntime(qoder);
             return true;
@@ -616,6 +624,33 @@ internal static class Program
         return args != null && args.IndexOf("launch-hidden.vbs", StringComparison.OrdinalIgnoreCase) >= 0;
     }
 
+    /* 卸载时原始备份已经不在（用户删了，或快捷方式在安装前就是她的）：
+     * 把快捷方式改回直接启动 Qoder 本体，而不是删掉 —— 删了桌面就没入口了。 */
+    private static void WritePlainShortcut(string lnk, string qoderExe)
+    {
+        Type shellType = Type.GetTypeFromProgID("WScript.Shell");
+        if (shellType == null) throw new Exception("WScript.Shell 不可用");
+        object shell = Activator.CreateInstance(shellType);
+        try
+        {
+            object shortcut = shellType.InvokeMember("CreateShortcut",
+                System.Reflection.BindingFlags.InvokeMethod, null, shell, new object[] { lnk });
+            if (shortcut == null) throw new Exception("无法创建快捷方式");
+            try
+            {
+                Set(shortcut, "TargetPath", qoderExe);
+                Set(shortcut, "Arguments", "");
+                Set(shortcut, "WorkingDirectory", Path.GetDirectoryName(qoderExe));
+                Set(shortcut, "IconLocation", qoderExe + ",0");
+                Set(shortcut, "Description", "Qoder");
+                shortcut.GetType().InvokeMember("Save",
+                    System.Reflection.BindingFlags.InvokeMethod, null, shortcut, null);
+            }
+            finally { try { System.Runtime.InteropServices.Marshal.ReleaseComObject(shortcut); } catch { } }
+        }
+        finally { try { System.Runtime.InteropServices.Marshal.ReleaseComObject(shell); } catch { } }
+    }
+
     private static void WriteStatusBarShortcut(string lnk, string qoderExe)
     {
         Type shellType = Type.GetTypeFromProgID("WScript.Shell");
@@ -713,56 +748,70 @@ internal static class Program
 
     private static void UninstallShortcuts(QoderInfo qoder)
     {
-        var targets = new List<string>();
-        if (!string.IsNullOrEmpty(_shortcutDirOverride))
-        {
-            CollectShortcuts(_shortcutDirOverride, qoder.ExePath, targets);
-        }
+        var dirs = new List<string>();
+        if (!string.IsNullOrEmpty(_shortcutDirOverride)) dirs.Add(_shortcutDirOverride);
         else
         {
-            CollectShortcuts(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), qoder.ExePath, targets);
-            CollectShortcuts(Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory), qoder.ExePath, targets);
-            CollectShortcuts(Environment.GetFolderPath(Environment.SpecialFolder.StartMenu), qoder.ExePath, targets);
-            CollectShortcuts(Environment.GetFolderPath(Environment.SpecialFolder.CommonStartMenu), qoder.ExePath, targets);
+            dirs.Add(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory));
+            dirs.Add(Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory));
+            dirs.Add(Environment.GetFolderPath(Environment.SpecialFolder.StartMenu));
+            dirs.Add(Environment.GetFolderPath(Environment.SpecialFolder.CommonStartMenu));
         }
 
-        /* 我们的快捷方式现在是 wscript，不会被 CollectShortcuts 命中，单独找回来 */
-        var more = new List<string>();
-        if (!string.IsNullOrEmpty(_shortcutDirOverride))
+        var targets = new List<string>();
+        foreach (var dir in dirs)
         {
-            AddIfExists(more, Path.Combine(_shortcutDirOverride, "Qoder.lnk"));
+            CollectShortcuts(dir, qoder.ExePath, targets);
+            CollectStatusBarShortcuts(dir, targets);
         }
-        else
-        {
-            AddIfExists(more, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "Qoder.lnk"));
-            AddIfExists(more, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory), "Qoder.lnk"));
-        }
-        foreach (var lnk in more) if (!targets.Contains(lnk) && PointsToStatusBar(lnk)) targets.Add(lnk);
 
         foreach (var lnk in targets)
         {
             try
             {
                 string backup = BackupPathFor(lnk);
+                bool ours = PointsToStatusBar(lnk);
+
+                /* 已经不是我们的快捷方式了（用户自己改回去/换过），不覆盖它，
+                 * 原始备份也不删 —— 那是用户唯一还留着的东西，让他自己处置。 */
+                if (!ours) continue;
+
                 if (File.Exists(backup))
                 {
                     File.Copy(backup, lnk, true);
                     File.Delete(backup);
                     Say("      已恢复原始快捷方式: " + lnk);
                 }
-                else if (PointsToStatusBar(lnk))
+                else
                 {
-                    File.Delete(lnk);
-                    Say("      已删除: " + lnk);
+                    /* 备份丢了（用户自己删了，或安装前它就是我们的）：
+                     * 改回直接启动 Qoder 本体，绝不能删掉快捷方式 ——
+                     * 那样桌面上就没有任何启动入口了。 */
+                    WritePlainShortcut(lnk, qoder.ExePath);
+                    Say("      已恢复为直接启动 Qoder（没有原始备份）: " + lnk);
                 }
             }
             catch (Exception e) { Say("      [x] " + lnk + ": " + e.Message); }
         }
     }
 
-    private static void AddIfExists(List<string> list, string path)
+    /* 安装后的快捷方式指向 wscript，CollectShortcuts（按 Qoder.exe 目标匹配）扫不到，
+     * 必须单独按「指向我们的 launch-hidden.vbs」找回，否则卸载后开始菜单里会留下
+     * 一个指向已删除目录的死快捷方式。 */
+    private static void CollectStatusBarShortcuts(string dir, List<string> output)
     {
-        if (File.Exists(path)) list.Add(path);
+        if (string.IsNullOrEmpty(dir) || !Directory.Exists(dir)) return;
+        try
+        {
+            foreach (var f in Directory.GetFiles(dir, "*.lnk", SearchOption.AllDirectories))
+            {
+                string name = Path.GetFileName(f);
+                if (name.IndexOf("original launcher", StringComparison.OrdinalIgnoreCase) >= 0) continue;
+                if (name.IndexOf("原始启动", StringComparison.OrdinalIgnoreCase) >= 0) continue;
+                if (PointsToStatusBar(f) && !output.Contains(f)) output.Add(f);
+            }
+        }
+        catch { }
     }
 
     private static void StartStatusBar()
@@ -1131,9 +1180,14 @@ internal static class Program
 
         try
         {
-            Console.WriteLine("");
-            Console.Write("按回车键关闭本窗口...");
-            Console.ReadLine();
+            /* 双击运行时 stdin 是真控制台，需要停在最后让人看完；
+             * 脚本/重定向调用时直接退出，否则会把调用方挂死在 ReadLine 上。 */
+            if (!Console.IsInputRedirected)
+            {
+                Console.WriteLine("");
+                Console.Write("按回车键关闭本窗口...");
+                Console.ReadLine();
+            }
         }
         catch { }
         return code;
