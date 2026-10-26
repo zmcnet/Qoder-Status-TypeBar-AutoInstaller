@@ -64,7 +64,7 @@ Qoder 本身不会被动过。
 | `--qoder-dir <路径>` | 手动指定 Qoder 安装目录 |
 | `--install-dir <路径>` | 指定安装目录（默认 `%USERPROFILE%\.qoder\qoder-statusbar`） |
 | `--shortcut-dir <路径>` | 只处理指定目录里的快捷方式 |
-| `--port <端口>` | CDP 调试端口（默认 9222） |
+| `--port <端口>` | CDP 调试端口（默认 9222，被占用时启动器会自动换） |
 | `--no-wait` | 不等待 Qoder 退出（默认最多等 30 分钟） |
 | `--no-shortcut` | 不改快捷方式 |
 
@@ -95,7 +95,7 @@ build.bat
 ```csharp
 private const string PluginVersion = "1.0.1";
 private const string ZipUrl = "https://cnb.cool/kybll/Qoder-StatusBar/-/releases/download/v1.0.1/Qoder-Status-TypeBar-v1.0.1.zip";
-private const string ZipSha256 = "1bafe7a3...";
+private const string ZipSha256 = "de279c64...";
 ```
 
 发新版本时改这三处，重新编译，再发 Release。

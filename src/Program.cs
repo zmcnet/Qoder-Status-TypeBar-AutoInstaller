@@ -33,7 +33,7 @@ internal static class Program
     /* 换版本时这三处要一起改：PluginVersion / ZipUrl / ZipSha256 */
     private const string ZipUrl =
         "https://cnb.cool/kybll/Qoder-StatusBar/-/releases/download/v1.0.1/Qoder-Status-TypeBar-v1.0.1.zip";
-    private const string ZipSha256 = "1bafe7a3df2fbb3ca85ba711d14145aa7418450650e83849a2b32bc671a652ee";
+    private const string ZipSha256 = "de279c648fad6e8c4bd53698b0de0c1f15aff534be6e2835c3cb28fb795b8f0c";
 
     private const int WaitTimeoutSeconds = 1800;   /* 等 Qoder 退出，最多 30 分钟 */
     private const int PollIntervalMs = 800;
@@ -258,7 +258,7 @@ internal static class Program
         Console.WriteLine("用法: Install-Qoder-Status-TypeBar.exe [选项]");
         Console.WriteLine("");
         Console.WriteLine("  --qoder-dir <路径>   手动指定 Qoder 安装目录（默认自动定位）");
-        Console.WriteLine("  --port <端口>        CDP 调试端口（默认 9222）");
+        Console.WriteLine("  --port <端口>        CDP 调试端口（默认 9222，被占用时自动换）");
         Console.WriteLine("  --no-restart         安装后不自动启动 Qoder");
         Console.WriteLine("  --offline <zip>      使用本地插件包，不联网下载");
         Console.WriteLine("  --dry-run            只做下载/校验/解压，不改动任何文件");
@@ -440,6 +440,12 @@ internal static class Program
             File.WriteAllText(
                 Path.Combine(InstallDir, "qoder-path.txt"),
                 qoder.ExePath,
+                new UTF8Encoding(false));
+
+            /* CDP 端口写进 port.txt；被占用时启动器会自动换一个并回写 */
+            File.WriteAllText(
+                Path.Combine(InstallDir, "port.txt"),
+                _port.ToString(),
                 new UTF8Encoding(false));
 
             EnsureNodeRuntime(qoder);
