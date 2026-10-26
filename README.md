@@ -31,8 +31,8 @@
 
 ## 安装
 
-1. 到 [Releases](https://cnb.cool/kybll/Qoder-Status-TypeBar-AutoInstaller/-/releases) 下载
-   `Install-Qoder-Status-TypeBar.exe`。
+1. 下载 **[Install-Qoder-Status-TypeBar.exe](https://cnb.cool/kybll/Qoder-Status-TypeBar-AutoInstaller/-/releases/download/v1.0.0/Install-Qoder-Status-TypeBar.exe)**
+   （全部版本见 [Releases](https://cnb.cool/kybll/Qoder-Status-TypeBar-AutoInstaller/-/releases)）。
 2. **完全退出 Qoder**（托盘图标也要退出）。
 3. 双击运行，按提示回车即可。
 
