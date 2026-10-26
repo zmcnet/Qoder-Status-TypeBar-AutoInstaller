@@ -93,9 +93,9 @@ build.bat
 安装器内置的插件包版本、下载地址和 SHA256 在 `src/Program.cs` 顶部：
 
 ```csharp
-private const string PluginVersion = "1.0.0";
-private const string ZipUrl = "https://cnb.cool/kybll/Qoder-StatusBar/-/releases/download/v1.0.0/Qoder-Status-TypeBar-v1.0.0.zip";
-private const string ZipSha256 = "a7215b5a...";
+private const string PluginVersion = "1.0.1";
+private const string ZipUrl = "https://cnb.cool/kybll/Qoder-StatusBar/-/releases/download/v1.0.1/Qoder-Status-TypeBar-v1.0.1.zip";
+private const string ZipSha256 = "1bafe7a3...";
 ```
 
 发新版本时改这三处，重新编译，再发 Release。
