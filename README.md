@@ -113,6 +113,23 @@ private const string ZipSha256 = "aa75d326...";
 
 ---
 
+## 发版与自测工具
+
+```powershell
+# 快捷方式还原回归测试：全程在 %TEMP% 沙箱里跑，不碰真实桌面
+powershell -NoProfile -ExecutionPolicy Bypass -File tools\test-sandbox.ps1
+
+# 发 Release 并上传资产（插件包 zip / 本安装器 exe 都用它）
+node tools\cnb-release.mjs kybll/Qoder-Status-TypeBar-AutoInstaller v1.0.3 "标题" notes.md `
+     Install-Qoder-Status-TypeBar.exe application/octet-stream --commitish refs/heads/main
+```
+
+`cnb-release.mjs` 的凭据取环境变量 `CNB_TOKEN`；接口域名必须是 `api.cnb.cool`，
+资产上传要按「申请地址（带 `asset_name` + `size`）→ PUT → POST 校验」三步走。
+`--commitish` 只在 tag 还不存在时需要（Release 接口会顺带切 tag）。
+
+---
+
 ## License
 
 MIT
