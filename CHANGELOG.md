@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.0.6 — 2026-11-20
+
+- 仓库迁移到 GitHub：插件包下载地址与文档链接改为 `github.com/zmcnet`，
+  发版脚本重写为 `tools/github-release.mjs`（`gh` CLI，不再依赖 CNB 接口）。
+
 ## v1.0.5 — 2026-10-27
 
 - 内置插件包升级到 v1.0.4：那一版的发布包是在 `cdp.mjs` / `shot.mjs` 改跟随 `port.txt`

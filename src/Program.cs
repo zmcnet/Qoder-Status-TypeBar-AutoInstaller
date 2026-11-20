@@ -30,7 +30,7 @@ internal static class Program
     private const string ProductName = "Qoder Status Bar";
     /* 安装器自身版本与内置插件包版本是两回事：
      * 只改安装器逻辑时升 InstallerVersion，PluginVersion / ZipUrl / ZipSha256 跟着插件包走。 */
-    private const string InstallerVersion = "1.0.5";
+    private const string InstallerVersion = "1.0.6";
     private const string PluginVersion = "1.0.4";
 
     /* 换插件包版本时这三处要一起改：PluginVersion / ZipUrl / ZipSha256
