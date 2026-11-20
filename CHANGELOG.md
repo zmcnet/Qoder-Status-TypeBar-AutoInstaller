@@ -18,9 +18,10 @@
   现在只处理命令行里带着本安装目录的进程，`injector.pid` 也先核对命令行再杀（防 PID 复用）。
 - 安装器自身版本与内置插件包版本分开（`InstallerVersion` / `PluginVersion`），
   只改安装器逻辑时不再把安装器版本号当成插件版本显示。
-- 发版脚本 `tools/cnb-release.mjs` 用 `make_latest` 把新版本标成 latest（传 `is_latest` 会被接口静默忽略，
-  导致 `/releases/latest/download/...` 一直返回老包），发完再回读 `GET /releases/latest` 确认指针真的接上。
+- 发版脚本 `tools/cnb-release.mjs`（现为 `tools/github-release.mjs`）发完会回读 `GET /releases/latest`
+  确认 latest 指针真的接上 —— 指错的话 `/releases/latest/download/...` 一直返回老包。
   文档里的下载地址改用不带版本号的 `/releases/latest/download/...`。
+  迁移到 GitHub 后该脚本已改用 `gh` CLI。
 - 沙箱回归测试新增场景 5：跑完整个安装 / 卸载循环后，外部注入器仍然活着（18 项断言）。
 
 ## v1.0.3 — 2026-10-27
@@ -63,7 +64,7 @@
 首个公开版本。
 
 - 自动定位 Qoder 桌面端安装目录（进程 / 快捷方式 / 注册表 / 默认目录 / 特征扫描）。
-- 从 CNB Release 下载插件包并校验 SHA256。
+- 从 GitHub Releases 下载插件包并校验 SHA256。
 - 安装运行时到 `%USERPROFILE%\.qoder\qoder-statusbar`。
 - 快捷方式改为 `wscript.exe` 静默启动，原快捷方式备份为 `Qoder（原始启动）.lnk`。
 - 无 Node.js 环境时自动用 Qoder 自带的 Electron 运行时兜底（硬链接 `node.exe`）。

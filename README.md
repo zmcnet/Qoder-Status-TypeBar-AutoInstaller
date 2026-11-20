@@ -7,14 +7,14 @@
 ```
 
 本仓库只负责 **下载 + 安装 + 卸载**。读写数逻辑在插件仓库：
-[kybll/Qoder-StatusBar](https://cnb.cool/kybll/Qoder-StatusBar)
+[kybll/Qoder-StatusBar](https://github.com/zmcnet/Qoder-StatusBar)
 
 ---
 
 ## 它做了什么
 
 1. 找到本机的 Qoder 安装目录（运行中的进程 / 快捷方式 / 卸载注册表 / 默认目录 / 全盘特征扫描）。
-2. 从 CNB Release 下载插件包，校验 **SHA256** 后解压。
+2. 从 GitHub Releases 下载插件包，校验 **SHA256** 后解压。
 3. 把运行时复制到 `%USERPROFILE%\.qoder\qoder-statusbar`。
 4. 把桌面和开始菜单里的 Qoder 快捷方式改成经 `wscript.exe` 静默启动（**不弹 cmd 窗口**），
    原快捷方式重命名为 `Qoder（原始启动）.lnk` 备份。
@@ -25,14 +25,14 @@
 - 不修改 Qoder 的 `app.asar` 或任何程序文件（Electron 完整性校验会拦，也不必要）。
 - 不需要管理员权限。
 - 不需要预装 Node.js —— 没装 Node 时用 Qoder 自带的 Electron 运行时（硬链接 `node.exe`）。
-- 不联网上报任何数据；只访问 CNB 的 Release 下载地址。
+- 不联网上报任何数据；只访问 GitHub 的 Release 下载地址。
 
 ---
 
 ## 安装
 
-1. 下载 **[Install-Qoder-Status-TypeBar.exe](https://cnb.cool/kybll/Qoder-Status-TypeBar-AutoInstaller/-/releases/latest/download/Install-Qoder-Status-TypeBar.exe)**
-   （全部版本见 [Releases](https://cnb.cool/kybll/Qoder-Status-TypeBar-AutoInstaller/-/releases)）。
+1. 下载 **[Install-Qoder-Status-TypeBar.exe](https://github.com/zmcnet/Qoder-Status-TypeBar-AutoInstaller/releases/latest/download/Install-Qoder-Status-TypeBar.exe)**
+   （全部版本见 [Releases](https://github.com/zmcnet/Qoder-Status-TypeBar-AutoInstaller/releases)）。
 2. **完全退出 Qoder**（托盘图标也要退出）。
 3. 双击运行，按提示回车即可。
 
@@ -52,7 +52,7 @@ SHA256  edc6d33cd36fc96f6edf9b57935dae521ea4d854946cb668ff6d824b74a0cc85
 > 用下面这条直接核对线上 latest 包，不用信文档里的静态值：
 >
 > ```powershell
-> curl.exe -sSL -o $env:TEMP\qsb.exe "https://cnb.cool/kybll/Qoder-Status-TypeBar-AutoInstaller/-/releases/latest/download/Install-Qoder-Status-TypeBar.exe"
+> curl.exe -sSL -o $env:TEMP\qsb.exe "https://github.com/zmcnet/Qoder-Status-TypeBar-AutoInstaller/releases/latest/download/Install-Qoder-Status-TypeBar.exe"
 > (Get-FileHash $env:TEMP\qsb.exe -Algorithm SHA256).Hash.ToLower()
 > ```
 
@@ -113,7 +113,7 @@ build.bat
 
 ```csharp
 private const string PluginVersion = "1.0.4";
-private const string ZipUrl = "https://cnb.cool/kybll/Qoder-StatusBar/-/releases/download/v1.0.4/Qoder-Status-TypeBar-v1.0.4.zip";
+private const string ZipUrl = "https://github.com/zmcnet/Qoder-StatusBar/releases/download/v1.0.4/Qoder-Status-TypeBar-v1.0.4.zip";
 private const string ZipSha256 = "1ab7e5a2...";
 ```
 
@@ -129,17 +129,15 @@ private const string ZipSha256 = "1ab7e5a2...";
 powershell -NoProfile -ExecutionPolicy Bypass -File tools\test-sandbox.ps1
 
 # 发 Release 并上传资产（插件包 zip / 本安装器 exe 都用它）
-node tools\cnb-release.mjs kybll/Qoder-Status-TypeBar-AutoInstaller v1.0.5 "标题" notes.md `
-     Install-Qoder-Status-TypeBar.exe application/octet-stream --commitish refs/heads/main
+node tools\github-release.mjs zmcnet/Qoder-Status-TypeBar-AutoInstaller v1.0.5 "标题" notes.md `
+     Install-Qoder-Status-TypeBar.exe application/octet-stream --commitish main
 ```
 
-`cnb-release.mjs` 的凭据取环境变量 `CNB_TOKEN`；接口域名必须是 `api.cnb.cool`，
-资产上传要按「申请地址（带 `asset_name` + `size`）→ PUT → POST 校验」三步走。
-`--commitish` 只在 tag 还不存在时需要（Release 接口会顺带切 tag）。
+`github-release.mjs` 的凭据由 `gh` CLI 提供（先 `gh auth login`）。
+`--commitish` 只在 tag 还不存在时需要（gh 会从该 ref 切 tag）。
 
-latest 指针用 `make_latest:"true"`（字符串），脚本发完还会回读 `GET /releases/latest`
-确认真正接上了 —— 传 `is_latest:true` 会被接口静默忽略，
-`/releases/latest/download/...` 就一直返回老包，README 里的链接全跟着骗人。
+脚本发完会回读 `GET /releases/latest` 确认 latest 真正接上了 ——
+指针指错的话 `/releases/latest/download/...` 一直返回老包，README 里的链接全跟着骗人。
 
 ---
 

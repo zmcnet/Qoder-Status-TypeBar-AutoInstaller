@@ -1,7 +1,7 @@
 /* Qoder Status Bar 一键安装器
  *
  * 双击这个 exe，把 Qoder 桌面端输入框底栏的用量读数装好：
- *   1. 从 CNB release 下载插件包（SHA256 校验，对不上就中止）
+ *   1. 从 GitHub Releases 下载插件包（SHA256 校验，对不上就中止）
  *   2. 解压到临时目录，把 runtime/ 复制到 %USERPROFILE%\.qoder\qoder-statusbar
  *   3. 机器上没有 Node 时，用 Qoder.exe 的硬链接做一个 node.exe（v24 运行时）
  *   4. 备份并替换桌面/开始菜单里的 Qoder 快捷方式（隐藏窗口启动）
@@ -36,7 +36,7 @@ internal static class Program
     /* 换插件包版本时这三处要一起改：PluginVersion / ZipUrl / ZipSha256
      * 链接钉死具体版本（不跟 latest），latest 指错了也不会装到没校验过的包。 */
     private const string ZipUrl =
-        "https://cnb.cool/kybll/Qoder-StatusBar/-/releases/download/v1.0.4/Qoder-Status-TypeBar-v1.0.4.zip";
+        "https://github.com/zmcnet/Qoder-StatusBar/releases/download/v1.0.4/Qoder-Status-TypeBar-v1.0.4.zip";
     private const string ZipSha256 = "1ab7e5a2e4c316d91100b6694d157ace03a9a9fe47772c858d72bf1452537622";
 
     private const int WaitTimeoutSeconds = 1800;   /* 等 Qoder 退出，最多 30 分钟 */
@@ -105,7 +105,7 @@ internal static class Program
         Say("==================================================");
         Say("  Qoder 用量状态条 · 一键安装器");
         Say("  v" + InstallerVersion + "（内置插件包 v" + PluginVersion + "）");
-        Say("  https://cnb.cool/kybll/Qoder-StatusBar");
+        Say("  https://github.com/zmcnet/Qoder-StatusBar");
         Say("==================================================");
         Say("");
 
